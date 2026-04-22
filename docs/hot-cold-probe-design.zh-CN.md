@@ -94,11 +94,21 @@ score = qps_ewma * (p99_rocks - p99_redis) * miss_penalty
 模块划分：
 
 - `hot_cold_probe.py`：策略引擎与计划生成（打分、热/冷 streak、预算约束）。
-- `hot_cold_metrics.py`：埋点事件 `ReadEvent` / `WriteEvent`、窗口聚合器、EWMA。
+- `hot_cold_metrics.py`：埋点事件 `ReadEvent` / `WriteEvent`、窗口聚合器、EWMA、`AggregatedSamples`（bucket + key 双视角 + 每 bucket 的 skew index）。
+- `hot_cold_topk.py`：Space-Saving 算法的 `TopKTracker`，记录每 key 的 reads/hits/writes/延迟样本，内存上界 O(capacity)。
+- `hot_cold_hybrid.py`：`HybridPlanner`，按 skew 决定“整 bucket 升级”还是“只升级 Top-K key”。
 - `hot_cold_storage.py`：`KVStore` 抽象、内存版 Redis/RocksDB、`TieredCache` cache-aside 外观。
-- `hot_cold_executor.py`：迁移执行器，支持四档安全模式。
+- `hot_cold_executor.py`：迁移执行器，支持四档安全模式，支持 `apply_hybrid` 同时处理 bucket 级和 key 级动作。
 - `hot_cold_simulation.py`：端到端模拟，把采集 → 聚合 → 规划 → 执行串起来。
-- `test_hot_cold_probe.py` / `test_hot_cold_pipeline.py`：单元 + 集成测试。
+- `test_hot_cold_probe.py` / `test_hot_cold_pipeline.py` / `test_hot_cold_topk_hybrid.py`：单元 + 集成测试。
+
+关键函数索引：
+
+- `TopKTracker.observe_read` / `observe_write`：`hot_cold_topk.py`
+- `MetricsCollector.record_read` / `record_write`：`hot_cold_metrics.py`
+- `WindowAggregator.build_samples`：`hot_cold_metrics.py`（产出 bucket_samples + key_samples + skew_by_bucket）
+- `HybridPlanner.plan`：`hot_cold_hybrid.py`
+- `MigrationExecutor.apply_hybrid`：`hot_cold_executor.py`
 
 执行器的四档安全模式（强烈建议按顺序灰度）：
 

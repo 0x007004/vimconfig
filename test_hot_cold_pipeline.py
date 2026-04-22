@@ -27,12 +27,12 @@ class MetricsPipelineTests(unittest.TestCase):
         collector.record_write(WriteEvent(bucket_key="user", value_size_bytes=128))
         collector.set_tier("user", Tier.ROCKS)
 
-        snapshot = collector.snapshot_and_reset()
+        bucket_snapshot, topk_snapshot, key_to_bucket = collector.snapshot_and_reset()
         aggregator = WindowAggregator(window_seconds=60.0, ewma_alpha=0.5)
-        samples = aggregator.build_samples(snapshot)
+        samples = aggregator.build_samples(bucket_snapshot, topk_snapshot, key_to_bucket)
 
-        self.assertEqual(len(samples), 1)
-        user = samples[0]
+        self.assertEqual(len(samples.bucket_samples), 1)
+        user = samples.bucket_samples[0]
         self.assertEqual(user.key, "user")
         self.assertGreater(user.qps_ewma, 0.0)
         self.assertGreater(user.miss_penalty, 1.0)
