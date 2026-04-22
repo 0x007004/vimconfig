@@ -91,16 +91,38 @@ score = qps_ewma * (p99_rocks - p99_redis) * miss_penalty
 
 ## 8. 本仓库 PoC 说明
 
-代码文件：
-- `hot_cold_probe.py`：策略引擎与计划生成。
-- `test_hot_cold_probe.py`：单元测试。
+模块划分：
+
+- `hot_cold_probe.py`：策略引擎与计划生成（打分、热/冷 streak、预算约束）。
+- `hot_cold_metrics.py`：埋点事件 `ReadEvent` / `WriteEvent`、窗口聚合器、EWMA。
+- `hot_cold_storage.py`：`KVStore` 抽象、内存版 Redis/RocksDB、`TieredCache` cache-aside 外观。
+- `hot_cold_executor.py`：迁移执行器，支持四档安全模式。
+- `hot_cold_simulation.py`：端到端模拟，把采集 → 聚合 → 规划 → 执行串起来。
+- `test_hot_cold_probe.py` / `test_hot_cold_pipeline.py`：单元 + 集成测试。
+
+执行器的四档安全模式（强烈建议按顺序灰度）：
+
+1. `COLLECT_ONLY`：仅采集，不规划。
+2. `PLAN_ONLY`：只输出 plan，不落地。
+3. `PROMOTE_ONLY`：只允许升级，不自动降级。
+4. `FULL`：全部打开，配合限速 + 回滚开关。
+
+每轮执行限流：
+
+- `max_bytes_per_run`：迁移字节预算。
+- `max_ops_per_run`：动作数预算。
+- `allowed_prefixes`：灰度租户/前缀白名单。
 
 运行方式：
 
 ```bash
-python -m unittest -v
-python hot_cold_probe.py
+python3 -m unittest -v
+python3 hot_cold_simulation.py
 ```
 
-该 PoC 目前输出“迁移计划”，不直接操作 Redis/RocksDB 客户端。  
-业务接入时只需将 `MigrationAction` 映射到你的执行器即可。
+落地接入：
+
+- 将业务读写路径上的 latency/hit/size 统计接入 `MetricsCollector`。
+- 用现有监控管道（Kafka/ClickHouse/Flink）替换 `WindowAggregator`。
+- `KVStore` 协议替换为真实 Redis/RocksDB 客户端。
+- `MigrationExecutor` 改为异步 worker，并加入 Prometheus 指标导出。
