@@ -3,9 +3,10 @@ import argparse
 import csv
 import sys
 from pathlib import Path
+from typing import List, Optional, Set
 
 
-def read_bundle_names(csv_path: Path) -> set[str]:
+def read_bundle_names(csv_path: Path) -> Set[str]:
     with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file)
         if "bundle_name" not in (reader.fieldnames or []):
@@ -19,7 +20,7 @@ def read_bundle_names(csv_path: Path) -> set[str]:
         return bundle_names
 
 
-def write_result(bundle_names: list[str], output_path: Path | None) -> None:
+def write_result(bundle_names: List[str], output_path: Optional[Path]) -> None:
     if output_path is None:
         for name in bundle_names:
             print(name)
