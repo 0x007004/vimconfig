@@ -19,6 +19,13 @@ order of abstraction:
 4. *What ties it all together* — Harness Engineering: `Agent = Model + Harness`.
 5. **This demo** — a working harness instantiation you can run, modify, break.
 
+## Requirements
+
+- **Python 3.9+** (uses `str.removeprefix` and PEP 585 builtin generics; tested on 3.12)
+- **PyYAML** (only runtime dep; `pip install -r requirements.txt`)
+- *Optional:* `anthropic` SDK if you want `--llm` mode (`pip install -r requirements-llm.txt`)
+- *Optional:* `pytest` to run the test suite
+
 ## 30-second quickstart
 
 ```bash

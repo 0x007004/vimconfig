@@ -28,6 +28,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List
 
+if sys.version_info < (3, 9):
+    sys.stderr.write(
+        f"this demo requires Python 3.9+ (you have {sys.version.split()[0]}); "
+        "uses str.removeprefix and PEP 585 builtin generics.\n"
+    )
+    sys.exit(2)
+
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
