@@ -12,14 +12,12 @@ import argparse
 import json
 import time
 from dataclasses import asdict, dataclass
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import yaml  # type: ignore[import-not-found]
 
-ROOT = Path(__file__).resolve().parent.parent
-EXPERTS_PATH = ROOT / "experts.yaml"
-ASKS_DIR = ROOT / "asks"
+from .paths import ASKS as ASKS_DIR
+from .paths import EXPERTS as EXPERTS_PATH
 
 
 @dataclass

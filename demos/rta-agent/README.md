@@ -123,6 +123,79 @@ And the [5-step minimum closed loop][min-loop]:
 | 4. Self-verify | `tools/verify.py`'s 4-sensor suite |
 | 5. Write back | `agent.py` step 6 → `tools/write_skill.py` |
 
+## Pointing at your real RTA codebase
+
+By default the demo bundles agent code + workspace data in one directory for
+ease of learning. For real adoption, the recommended layout is:
+
+```
+your-rta-gateway/                   ← your existing repo (= WORKSPACE)
+├── adapters/                       ← already exists; agent writes new ones here
+├── protocols/                      ← media-side specs (markdown)
+├── skills/                         ← versioned with your code
+├── sandbox/                        ← your sandbox / mock servers
+├── CLAUDE.md
+├── experts.yaml
+├── pitfalls.md
+├── policy.yaml
+└── .agent/                         ← copy this directory's tools/ + agent.py here
+    ├── tools/
+    ├── agent.py
+    └── requirements.txt
+```
+
+The agent reads/writes the **workspace** (your repo), while the agent code
+lives wherever you cloned it. Two ways to wire it up:
+
+### Way 1: agent inside the repo
+
+```bash
+cp -r demos/rta-agent/{tools,agent.py,requirements.txt} your-rta-gateway/.agent/
+cd your-rta-gateway
+RTA_WORKSPACE_ROOT=$PWD python .agent/agent.py integrate <media>
+```
+
+### Way 2: agent as an external toolkit
+
+```bash
+# clone the agent toolkit anywhere
+git clone <this-repo> ~/tools/rta-agent
+
+# point it at your real codebase
+export RTA_WORKSPACE_ROOT=/path/to/your-rta-gateway
+python ~/tools/rta-agent/demos/rta-agent/agent.py integrate <media>
+```
+
+In both cases, the agent will:
+
+- Read `$RTA_WORKSPACE_ROOT/protocols/<media>.md`
+- Search `$RTA_WORKSPACE_ROOT/skills/`
+- Route via `$RTA_WORKSPACE_ROOT/experts.yaml`
+- Write `$RTA_WORKSPACE_ROOT/adapters/<media>.py`
+- Sink new skills to `$RTA_WORKSPACE_ROOT/skills/`
+- Log expert asks to `$RTA_WORKSPACE_ROOT/asks/`
+
+Then `git add . && git commit && open PR` — atomic, reviewable, all in **your**
+repo.
+
+### A note on non-Python codebases
+
+This demo's `tools/verify.py` imports adapter modules as Python and a Python
+mock sandbox. If your RTA gateway is in **Go / Java / Rust**, the structural
+pattern is the same but `verify.py` becomes a thin wrapper around your real
+build/test commands:
+
+```python
+def verify_media(media: str) -> VerifyReport:
+    subprocess.run(["go", "test", f"./adapters/{media}/..."], check=True)
+    subprocess.run(["./scripts/sandbox-replay.sh", media], check=True)
+    # ... etc; same 4 sensor checks, different invocation
+```
+
+The Guides (`protocols/`, `skills/`, `pitfalls.md`) are language-agnostic and
+stay markdown — the only piece that's language-specific is the verify shim
+and the codegen template.
+
 ## Running with a real LLM
 
 Default mode generates adapters from a deterministic template — works without

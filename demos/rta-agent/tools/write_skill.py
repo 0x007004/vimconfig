@@ -8,8 +8,7 @@ import re
 from pathlib import Path
 from typing import List
 
-ROOT = Path(__file__).resolve().parent.parent
-SKILLS_DIR = ROOT / "skills"
+from .paths import SKILLS as SKILLS_DIR
 
 
 def _slugify(text: str) -> str:

@@ -18,11 +18,11 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field, asdict
-from pathlib import Path
 from typing import List
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))
+from .paths import setup_import_paths
+
+setup_import_paths()
 
 from adapters import load_adapters  # noqa: E402
 from adapters.base import (  # noqa: E402

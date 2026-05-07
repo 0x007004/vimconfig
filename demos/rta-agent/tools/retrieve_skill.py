@@ -14,8 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
 
-ROOT = Path(__file__).resolve().parent.parent
-SKILLS_DIR = ROOT / "skills"
+from .paths import SKILLS as SKILLS_DIR
 
 
 @dataclass

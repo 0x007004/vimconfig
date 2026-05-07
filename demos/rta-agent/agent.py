@@ -35,10 +35,11 @@ if sys.version_info < (3, 9):
     )
     sys.exit(2)
 
-ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(ROOT))
+AGENT_ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(AGENT_ROOT))
 
 from tools import ask_expert, generate_adapter, retrieve_skill, write_skill  # noqa: E402
+from tools.paths import PROTOCOLS, WORKSPACE_ROOT, is_external_workspace  # noqa: E402
 from tools.verify import VerifyReport, verify_media  # noqa: E402
 
 
@@ -67,9 +68,12 @@ def _wrap(s: str, width: int = 88, indent: str = "    ") -> str:
 def _verify_subprocess(media: str) -> VerifyReport:
     """Run verify in a fresh interpreter so the freshly-written adapter
     module is loaded cleanly (no Python import caching surprises).
+
+    The subprocess inherits env (incl. RTA_WORKSPACE_ROOT) so it operates
+    on the same workspace as the parent.
     """
     cmd = [sys.executable, "-m", "tools.verify", media, "--json"]
-    proc = subprocess.run(cmd, cwd=str(ROOT), capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=str(AGENT_ROOT), capture_output=True, text=True)
     raw = (proc.stdout or proc.stderr).strip()
     payload = json.loads(raw)
     from tools.verify import CheckResult
@@ -82,8 +86,10 @@ def _verify_subprocess(media: str) -> VerifyReport:
 def integrate(media: str, use_llm: bool = False, max_asks: int = 3) -> int:
     log = RunLog(media=media)
 
+    if is_external_workspace():
+        log.step(f"workspace = {WORKSPACE_ROOT}  (external)")
     log.section(f"step 1 — read protocol for {media}")
-    protocol_path = ROOT / "protocols" / f"{media}.md"
+    protocol_path = PROTOCOLS / f"{media}.md"
     if not protocol_path.exists():
         log.step(f"  ✗ no protocol spec at {protocol_path}; aborting")
         return 2

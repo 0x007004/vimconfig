@@ -22,9 +22,8 @@ import re
 from pathlib import Path
 from typing import Dict, List
 
-ROOT = Path(__file__).resolve().parent.parent
-ADAPTERS_DIR = ROOT / "adapters"
-PROTOCOLS_DIR = ROOT / "protocols"
+from .paths import ADAPTERS as ADAPTERS_DIR
+from .paths import PROTOCOLS as PROTOCOLS_DIR
 
 
 def _read_protocol(media: str) -> str:
