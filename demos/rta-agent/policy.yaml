@@ -1,0 +1,37 @@
+version: 1
+
+write_targets:
+  allow:
+    - "adapters/<media>.py"
+    - "skills/**.md"
+    - "asks/*.json"
+  deny:
+    - "protocols/**"
+    - "adapters/base.py"
+    - "adapters/foxads.py"
+    - "adapters/owlads.py"
+    - "policy.yaml"
+    - "CLAUDE.md"
+
+git:
+  push_branches:
+    allow: ["feature/*", "rta/*", "cursor/*"]
+    deny: ["master", "main", "release/*"]
+  require_human_approval:
+    - merge_pr
+
+sensors:
+  required_for_done:
+    - schema_check
+    - sandbox_replay
+    - latency_budget
+    - reconcile_parity
+  bypass: forbidden
+
+token_budget:
+  per_task_usd: 5.0
+  on_exceed: "halt_and_report"
+
+ask_budget:
+  per_expert_per_day: 5
+  per_task_total: 10
