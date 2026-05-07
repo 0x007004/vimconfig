@@ -1,0 +1,68 @@
+version: 1
+
+experts:
+  - id: zhangsan
+    name: 张三
+    expertise:
+      - domain: rta-protocol
+        subtopics: [signature, hmac, encryption, header]
+        level: expert
+      - domain: protobuf-debug
+        subtopics: [proto, schema, decode]
+        level: proficient
+    contact: feishu:@zhangsan
+    timezone: Asia/Shanghai
+    workhours: "10:00-19:00"
+    budget:
+      max_questions_per_day: 5
+      response_sla_hours: 2
+
+  - id: lisi
+    name: 李四
+    expertise:
+      - domain: rta-deviceid
+        subtopics: [oaid, idfa, androidid, imei, deviceid_priority]
+        level: expert
+      - domain: privacy-compliance
+        subtopics: [gdpr, pipl, consent]
+        level: proficient
+    contact: feishu:@lisi
+    timezone: Asia/Shanghai
+    workhours: "10:00-19:00"
+    budget:
+      max_questions_per_day: 5
+      response_sla_hours: 4
+
+  - id: wangwu
+    name: 王五
+    expertise:
+      - domain: rta-bidding
+        subtopics: [bid_price, ecpm, win_rate, frequency_capping]
+        level: expert
+      - domain: rta-latency
+        subtopics: [timeout, p99, latency_budget, slo]
+        level: expert
+    contact: feishu:@wangwu
+    timezone: Asia/Shanghai
+    workhours: "10:00-19:00"
+    budget:
+      max_questions_per_day: 5
+      response_sla_hours: 1
+
+  - id: zhaoliu
+    name: 赵六
+    expertise:
+      - domain: rta-reconciliation
+        subtopics: [reconcile, attribution, deduction, billing]
+        level: expert
+    contact: feishu:@zhaoliu
+    timezone: Asia/Shanghai
+    workhours: "10:00-19:00"
+    budget:
+      max_questions_per_day: 5
+      response_sla_hours: 8
+
+routing:
+  default_strategy: best_match
+  fallback: zhangsan
+  redirect_on_no_match: true
